@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공사 인원 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; padding-top: 1rem; }
+        .container { max-width: 800px; }
+        .card { margin-bottom: 1.5rem; }
+        .report-textarea { 
+            font-family: 'D2Coding', 'Consolas', monospace; /* 코딩용 폰트 적용 */
+            white-space: pre;
+            font-size: 0.85rem;
+            height: 450px;
+        }
+        .btn-custom-danger {
+            --bs-btn-color: #fff;
+            --bs-btn-bg: #dc3545;
+            --bs-btn-border-color: #dc3545;
+            --bs-btn-hover-color: #fff;
+            --bs-btn-hover-bg: #bb2d3b;
+            --bs-btn-hover-border-color: #b02a37;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center mb-4">🏗️ 공사 인원 관리 시스템</h2>
+
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">
+                인원 등록
+            </div>
+            <div class="card-body">
+                <form action="/add" method="post">
+                    <div class="row g-2">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label">소속:</label>
+                            <input type="text" name="affiliation" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label">대표 이름:</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label">인원 수:</label>
+                            <input type="number" name="count" class="form-control" value="1" min="1" required>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label">차량 (번호와 차종):</label>
+                            <input type="text" name="vehicle" class="form-control" placeholder="없으면 비워두세요">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-2">입영 등록</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">
+                현장 인원 (퇴영 처리)
+            </div>
+            <div class="card-body">
+                {% if not records %}
+                <p class="text-center text-muted">현재 현장 인원이 없습니다.</p>
+                {% else %}
+                <ul class="list-group">
+                    {% for (key, data) in records %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold">{{ key[0] }}</span> - 
+                            {{ key[1] }} {% if data.count > 1 %}등 {{ data.count }}명{% else %}1명{% endif %}
+                            <small class="text-muted d-block">{{ data.vehicles|join(', ') if data.vehicles else '도보' }}</small>
+                        </div>
+                        <form action="/remove" method="post" class="d-inline">
+                            <input type="hidden" name="group_id" value="{{ data.group_id }}">
+                            <button type="submit" class="btn btn-custom-danger btn-sm">퇴영</button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">
+                입영 보고서
+            </div>
+            <div class="card-body">
+                <textarea id="report-text" class="form-control report-textarea" readonly>{{ report_text }}</textarea>
+                <button id="copy-btn" class="btn btn-success w-100 mt-3" onclick="copyReport()">📋 보고서 복사</button>
+            </div>
+        </div>
+        
+        <form action="/clear" method="post" onsubmit="return confirm('정말로 모든 기록을 삭제하고 초기화하시겠습니까?');">
+            <button type="submit" class="btn btn-secondary w-100 mt-2 mb-4">전체 초기화</button>
+        </form>
+    </div>
+
+    <script>
+        function copyReport() {
+            const reportText = document.getElementById('report-text');
+            const copyBtn = document.getElementById('copy-btn');
+
+            // 최신 클립보드 API 사용
+            navigator.clipboard.writeText(reportText.value).then(() => {
+                // 성공 시
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '✅ 복사 완료!';
+                copyBtn.classList.remove('btn-success');
+                copyBtn.classList.add('btn-secondary');
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.classList.remove('btn-secondary');
+                    copyBtn.classList.add('btn-success');
+                }, 2000); // 2초 후에 버튼 텍스트를 원래대로
+            }).catch(err => {
+                console.error('복사 실패:', err);
+                alert('복사에 실패했습니다. 앱이 HTTPS 환경이 아닐 경우 일부 최신폰에서 동작하지 않을 수 있습니다.');
+            });
+        }
+    </script>
+</body>
+</html>
