@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from collections import defaultdict
 import logging
 
-# 로깅 설정 (터미널 출력을 깔끔하게 하기 위해)
+# 터미널 출력을 깔끔하게 하기 위해 로깅 설정
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
@@ -84,7 +84,7 @@ def index():
     return render_template('index.html', records=records_list, report_text=entry_report_text)
 
 
-@app.route('/add', methods=['POST'])
+@app.route('/add', methods=['POST']) # ⭐ 수정된 부분 1
 def add_entry():
     """새로운 인원을 추가합니다."""
     global total_entrants_today
@@ -111,7 +111,7 @@ def add_entry():
     return redirect(url_for('index'))
 
 
-@app.route('/remove', methods=['POST'])
+@app.route('/remove', methods=['POST']) # ⭐ 수정된 부분 2
 def remove_entry():
     """선택한 그룹을 퇴영 처리합니다."""
     global total_exits_today, on_site_records
@@ -127,7 +127,7 @@ def remove_entry():
     return redirect(url_for('index'))
 
 
-@app.route('/clear', methods=['POST'])
+@app.route('/clear', methods=['POST']) # ⭐ 수정된 부분 3
 def clear_all():
     """모든 데이터를 초기화합니다."""
     global on_site_records, total_entrants_today, total_exits_today
